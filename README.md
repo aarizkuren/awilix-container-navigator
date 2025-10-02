@@ -4,9 +4,12 @@ Extensión para Cursor/VSCode que permite navegar directamente desde `container.
 
 ## 🚀 Características
 
-- **Navegación directa**: Haz Cmd+Click (macOS) o Ctrl+Click (Windows/Linux) sobre el string dentro de `container.resolve('nombre')` para ir a la definición
-- **Soporte completo**: Funciona con todos los módulos registrados en tu sistema de inyección de dependencias
-- **Búsqueda inteligente**: Busca automáticamente en todos los archivos `_di/index.ts` de tu proyecto
+### Navegación bidireccional completa:
+
+1. **Desde uso → definición**: Haz Cmd+Click (macOS) o Ctrl+Click (Windows/Linux) sobre el string dentro de `container.resolve('nombre')` para ir directamente al caso de uso
+2. **Desde definición → usos**: Estando en un archivo de caso de uso, presiona Cmd+Shift+F12 (macOS) o Shift+F12 (Windows/Linux) o click derecho → "Find All References" para ver todos los lugares donde se usa a través del container
+3. **Soporte completo**: Funciona con todos los módulos registrados en tu sistema de inyección de dependencias
+4. **Búsqueda inteligente**: Busca automáticamente en todos los archivos `_di/index.ts` de tu proyecto
 
 ## 📦 Instalación
 
@@ -50,28 +53,50 @@ npm run package
 
 ## 🎯 Uso
 
-Una vez instalada, simplemente haz **Cmd+Click** (o Ctrl+Click) sobre el nombre dentro de cualquier llamada a `container.resolve()`:
+### 1️⃣ Navegar desde el uso a la definición
+
+Haz **Cmd+Click** (o Ctrl+Click) sobre el nombre dentro de cualquier llamada a `container.resolve()`:
 
 ```typescript
 // Antes: tenías que extraer la constante para navegar
 const getCampaign = container.resolve("getMainCampaign");
 
 // Ahora: navega directamente
-container.resolve("getMainCampaign"); // ← Cmd+Click aquí te lleva a la definición
+container.resolve("getMainCampaign"); // ← Cmd+Click aquí te lleva a src/core/Hotel/usecases/getCampaign.ts
 ```
 
-### Ejemplos
+**Ejemplo en un hook:**
 
 ```typescript
-// En un hook
 const { data } = useQueryService("hotel-campaign", dependencies, () =>
   container.resolve("getCampaignForCoupon")({
-    // ← Cmd+Click aquí
+    // ← Cmd+Click aquí para ir al caso de uso
     marketprice,
     language,
     hotelId,
   })
 );
+```
+
+### 2️⃣ Navegar desde la definición a los usos
+
+Estando en un archivo de caso de uso (por ejemplo: `src/core/Hotel/usecases/getCampaign.ts`):
+
+**Opción A:** Presiona **Cmd+Shift+F12** (macOS) o **Shift+F12** (Windows/Linux)
+
+**Opción B:** Click derecho sobre el nombre de la función → **"Find All References"**
+
+**Opción C:** Click derecho → **"Go to References"**
+
+La extensión te mostrará todos los lugares donde se usa este caso de uso a través de `container.resolve()`:
+
+```
+Referencias encontradas:
+  📄 src/ui/hooks/queries/useCampaign.ts (línea 50)
+      container.resolve("getMainCampaign")
+
+  📄 src/ui/pages/hotel/HotelDetail.tsx (línea 23)
+      container.resolve("getMainCampaign")
 ```
 
 ## 🔧 Desarrollo
@@ -93,7 +118,7 @@ npm run watch
 
 ## 📝 Cómo funciona
 
-La extensión:
+### Navegación desde uso → definición (Definition Provider)
 
 1. Detecta cuando haces click en un string dentro de `container.resolve()`
 2. Extrae el nombre del módulo
@@ -101,6 +126,15 @@ La extensión:
 4. Encuentra la definición usando el patrón: `nombreModulo: asFunction(funcionImplementacion)`
 5. Lee el import de la función de implementación
 6. Te lleva directamente al archivo de implementación
+
+### Navegación desde definición → usos (Reference Provider)
+
+1. Detecta cuando estás en un archivo de caso de uso o repositorio (`/usecases/` o `/infrastructure/`)
+2. Busca en los archivos `_di/index.ts` para encontrar cómo está registrado ese archivo
+3. Extrae el nombre del módulo en el container
+4. Busca recursivamente en todo el directorio `src/` todos los archivos TypeScript/JavaScript
+5. Encuentra todas las ocurrencias de `container.resolve('nombreDelModulo')`
+6. Te muestra una lista completa de todas las referencias
 
 ## 🐛 Troubleshooting
 
@@ -118,4 +152,3 @@ La extensión:
 ## 📄 Licencia
 
 MIT
-

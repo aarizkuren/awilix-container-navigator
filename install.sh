@@ -26,7 +26,12 @@ if [ $? -eq 0 ]; then
     echo "Después, recarga la ventana:"
     echo "Command Palette > 'Developer: Reload Window'"
     echo ""
-    echo "🎉 ¡Listo! Ahora podrás hacer Cmd+Click en container.resolve('nombre')"
+    echo "🎉 ¡Listo! Navegación bidireccional activada:"
+    echo ""
+    echo "  ➡️  Cmd+Click en container.resolve('nombre') → ir a definición"
+    echo "  ⬅️  Cmd+Shift+F12 en caso de uso → ver todos los usos"
+    echo ""
+    echo "📖 Lee USAGE.md para más información y ejemplos"
 else
     echo ""
     echo "❌ Error en la compilación"
