@@ -67,6 +67,11 @@
           "type": "string",
           "default": "src",
           "description": "Root directory to search for Awilix container usages (relative to workspace root)"
+        },
+        "awilixNavigator.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug mode to show detailed logs in the Output panel"
         }
       }
     }

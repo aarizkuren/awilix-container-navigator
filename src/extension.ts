@@ -5,8 +5,11 @@ import { globSync } from "glob";
 
 // Canal de salida para logs
 let outputChannel: vscode.OutputChannel;
+let isDebugMode = false;
 
 const log = (message: string) => {
+  if (!isDebugMode) return;
+
   const timestamp = new Date().toLocaleTimeString();
   const logMessage = `[${timestamp}] ${message}`;
   outputChannel.appendLine(logMessage);
@@ -29,6 +32,7 @@ interface ExtensionConfig {
   registrationPatterns: RegistrationPattern[];
   fileIncludePatterns: string[];
   searchRootPath: string;
+  debugMode: boolean;
 }
 
 const getConfig = (): ExtensionConfig => {
@@ -59,6 +63,7 @@ const getConfig = (): ExtensionConfig => {
         "**/repositories/**",
       ],
     searchRootPath: config.get<string>("searchRootPath") || "src",
+    debugMode: config.get<boolean>("debugMode") || false,
   };
 };
 
@@ -67,10 +72,36 @@ export const activate = (context: vscode.ExtensionContext) => {
   outputChannel = vscode.window.createOutputChannel("Awilix Navigator");
   context.subscriptions.push(outputChannel);
 
+  // Obtener configuración inicial
+  const config = getConfig();
+  isDebugMode = config.debugMode;
+
   log("✅ Extension activated!");
 
-  // Mostrar el panel de output automáticamente
-  outputChannel.show(true); // true = preserveFocus (no quitar el foco del editor)
+  // Mostrar el panel de output automáticamente solo en modo debug
+  if (isDebugMode) {
+    outputChannel.show(true); // true = preserveFocus (no quitar el foco del editor)
+    vscode.window.showInformationMessage("Awilix Navigator: Modo debug activado");
+  }
+
+  // Listener para cambios en la configuración
+  const configChangeListener = vscode.workspace.onDidChangeConfiguration((e) => {
+    if (e.affectsConfiguration("awilixNavigator.debugMode")) {
+      const newConfig = getConfig();
+      const wasDebugMode = isDebugMode;
+      isDebugMode = newConfig.debugMode;
+
+      if (isDebugMode && !wasDebugMode) {
+        outputChannel.show(true);
+        vscode.window.showInformationMessage("Awilix Navigator: Modo debug activado");
+        log("✅ Debug mode enabled");
+      } else if (!isDebugMode && wasDebugMode) {
+        vscode.window.showInformationMessage("Awilix Navigator: Modo debug desactivado");
+      }
+    }
+  });
+
+  context.subscriptions.push(configChangeListener);
 
   // Provider para navegar desde container.resolve() a la definición
   const definitionProvider = vscode.languages.registerDefinitionProvider(

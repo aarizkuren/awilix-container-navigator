@@ -64,15 +64,14 @@ npm run package
 ### ✅ Verificar la instalación
 
 Después de instalar y recargar, deberías ver:
-- ✅ Una notificación: **"Awilix Container Navigator activado"**
-- ✅ El panel **"Output"** se abrirá automáticamente mostrando logs
 - ✅ La extensión en la lista de Extensions (`Cmd+Shift+X`)
+- ✅ La extensión funcionando cuando haces Cmd+Click en `container.resolve('nombre')`
 
-Para ver los logs en cualquier momento:
-- `Cmd+Shift+U` (macOS) / `Ctrl+Shift+U` (Windows/Linux)
-- Selecciona "Awilix Navigator" en el dropdown
-
-**⚠️ Si no ves la notificación**, consulta [INSTALL_CHECK.md](./INSTALL_CHECK.md) para troubleshooting detallado.
+**Modo debug:**
+- Por defecto está **desactivado** para no molestar con logs
+- Si quieres ver logs detallados (útil para configuración inicial o troubleshooting):
+  - Settings → "Awilix Navigator" → Marca "Debug Mode"
+  - O agrega en `settings.json`: `"awilixNavigator.debugMode": true`
 
 ## ⚙️ Configuración
 
@@ -213,6 +212,36 @@ Directorio raíz donde buscar usos del container (relativo a la raíz del worksp
 "lib"
 ```
 
+### `awilixNavigator.debugMode`
+
+**Tipo:** `boolean`  
+**Por defecto:** `false`
+
+Activa el modo debug para mostrar logs detallados en el panel Output.
+
+**¿Cuándo activarlo?**
+- ✅ Si la navegación no funciona y necesitas diagnosticar el problema
+- ✅ Si estás configurando la extensión por primera vez
+- ✅ Si estás desarrollando o contribuyendo a la extensión
+
+**¿Cuándo desactivarlo?**
+- ✅ Cuando la extensión funciona correctamente (por defecto)
+- ✅ Para evitar logs innecesarios en el panel Output
+
+**Cómo activar/desactivar:**
+```json
+{
+  "awilixNavigator.debugMode": true  // Activar logs detallados
+}
+```
+
+O en Settings UI:
+1. `Cmd+,` para abrir Settings
+2. Busca "Awilix Navigator"
+3. Marca/desmarca "Debug Mode"
+
+**Nota:** Los cambios se aplican inmediatamente sin necesidad de recargar la ventana.
+
 ## 📚 Ejemplos de configuración para diferentes estructuras
 
 ### Estructura clásica de DDD
@@ -321,8 +350,25 @@ npm run watch
 
 ## 🐛 Troubleshooting
 
+### Cómo diagnosticar problemas
+
+**1. Activa el modo debug:**
+```json
+{
+  "awilixNavigator.debugMode": true
+}
+```
+O en Settings: `Cmd+,` → Busca "Awilix Navigator" → Marca "Debug Mode"
+
+**2. Usa la extensión** (haz Cmd+Click en un `container.resolve()`)
+
+**3. Revisa los logs** en el panel Output (`Cmd+Shift+U` → selecciona "Awilix Navigator")
+
+Los logs te mostrarán exactamente dónde falla el proceso de resolución.
+
 ### La navegación no funciona
 
+- **Activa el modo debug** (ver arriba) para ver logs detallados
 - **Verifica la configuración**: Asegúrate de que los patrones coincidan con tu estructura de proyecto
 - **Recarga Cursor**: Command Palette > `Developer: Reload Window`
 - **Verifica la extensión**: `View > Extensions` y busca "Awilix Container Navigator"
