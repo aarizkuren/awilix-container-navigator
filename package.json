@@ -4,6 +4,7 @@
   "description": "Navigate to definitions from a Awilix container.resolve() call",
   "version": "1.0.0",
   "publisher": "local",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.80.0"
   },
