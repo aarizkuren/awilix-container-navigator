@@ -1,20 +1,47 @@
 {
   "name": "awilix-container-navigator",
   "displayName": "Awilix Container Navigator",
-  "description": "Navigate to definitions from a Awilix container.resolve() call",
+  "description": "Navigate seamlessly between Awilix container registrations and their implementations",
   "version": "1.0.0",
-  "publisher": "local",
+  "publisher": "aarizkuren",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
+    "Programming Languages",
     "Other"
+  ],
+  "keywords": [
+    "awilix",
+    "dependency-injection",
+    "di",
+    "container",
+    "ioc",
+    "typescript",
+    "javascript",
+    "navigation",
+    "goto-definition"
   ],
   "activationEvents": [
     "onLanguage:typescript",
-    "onLanguage:typescriptreact"
+    "onLanguage:typescriptreact",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aarizkuren/awilix-container-navigator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aarizkuren/awilix-container-navigator/issues"
+  },
+  "homepage": "https://github.com/aarizkuren/awilix-container-navigator#readme",
+  "author": {
+    "name": "Asier Arizkuren",
+    "email": "asier@arizkuren.net"
+  },
+  "license": "MIT",
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
