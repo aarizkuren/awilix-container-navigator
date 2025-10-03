@@ -1,7 +1,7 @@
 {
-  "name": "container-resolver-navigator",
-  "displayName": "Container Resolver Navigator",
-  "description": "Navigate to definitions from container.resolve() calls",
+  "name": "awilix-container-navigator",
+  "displayName": "Awilix Container Navigator",
+  "description": "Navigate to definitions from a Awilix container.resolve() call",
   "version": "1.0.0",
   "publisher": "local",
   "engines": {
@@ -15,7 +15,62 @@
     "onLanguage:typescriptreact"
   ],
   "main": "./out/extension.js",
-  "contributes": {},
+  "contributes": {
+    "configuration": {
+      "title": "Awilix Container Navigator",
+      "properties": {
+        "awilixNavigator.diFilePatterns": {
+          "type": "array",
+          "default": [
+            "**/src/core/**/_di/index.ts",
+            "**/src/core/**/_di/registerModules.ts"
+          ],
+          "description": "Glob patterns to find Awilix container registration files"
+        },
+        "awilixNavigator.containerCallPatterns": {
+          "type": "array",
+          "default": [
+            "container.resolve",
+            "container.cradle"
+          ],
+          "description": "Patterns to detect Awilix container method calls (e.g., 'container.resolve', 'ctx.container.resolve')"
+        },
+        "awilixNavigator.registrationPatterns": {
+          "type": "array",
+          "default": [
+            {
+              "pattern": "{name}:\\s*asFunction\\(({ref})\\)",
+              "type": "asFunction"
+            },
+            {
+              "pattern": "{name}:\\s*asClass\\(({ref})\\)",
+              "type": "asClass"
+            },
+            {
+              "pattern": "{name}:\\s*asValue\\(({ref})\\)",
+              "type": "asValue"
+            }
+          ],
+          "description": "Regex patterns to detect how modules are registered in Awilix container files. Use {name} as placeholder for module name and ({ref}) to capture the reference."
+        },
+        "awilixNavigator.fileIncludePatterns": {
+          "type": "array",
+          "default": [
+            "**/usecases/**",
+            "**/infrastructure/**",
+            "**/services/**",
+            "**/repositories/**"
+          ],
+          "description": "Patterns to include files that can be registered in the Awilix container (for reverse navigation)"
+        },
+        "awilixNavigator.searchRootPath": {
+          "type": "string",
+          "default": "src",
+          "description": "Root directory to search for Awilix container usages (relative to workspace root)"
+        }
+      }
+    }
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
@@ -25,7 +80,11 @@
   "devDependencies": {
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.80.0",
-    "typescript": "^5.0.0",
-    "@vscode/vsce": "^2.19.0"
+    "@vscode/vsce": "^2.19.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/glob": "^8.1.0",
+    "glob": "^11.0.3"
   }
 }
