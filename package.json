@@ -2,7 +2,7 @@
   "name": "awilix-container-navigator",
   "displayName": "Awilix Container Navigator",
   "description": "Navigate seamlessly between Awilix container registrations and their implementations",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "aarizkuren",
   "icon": "icon.png",
   "engines": {

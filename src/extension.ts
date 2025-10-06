@@ -129,32 +129,78 @@ export const activate = (context: vscode.ExtensionContext) => {
         log(`📄 Line content: ${line}`);
 
         // Verificar si estamos en una llamada al container usando patrones configurables
-        const isContainerCall = config.containerCallPatterns.some((pattern) =>
+        // Primero verificar la línea actual
+        let isContainerCall = config.containerCallPatterns.some((pattern) =>
           line.includes(pattern)
         );
 
+        // Si no se encuentra en la línea actual, buscar en líneas anteriores
+        // para detectar casos multilínea como:
+        // container
+        //   .resolve('moduleName')
         if (!isContainerCall) {
+          const maxLookBack = 5; // Máximo de líneas hacia atrás a revisar
+          const startLine = Math.max(0, position.line - maxLookBack);
+
+          // Construir el texto multilínea desde startLine hasta la línea actual
+          let multilineText = "";
+          for (let i = startLine; i <= position.line; i++) {
+            multilineText += document.lineAt(i).text + " ";
+          }
+
+          log(`📄 Multiline content: ${multilineText.trim()}`);
+
+          // Verificar si el texto multilínea contiene algún patrón
+          // Convertir el patrón en regex para permitir espacios/saltos de línea
+          isContainerCall = config.containerCallPatterns.some((pattern) => {
+            // Escapar caracteres especiales y permitir espacios entre partes
+            const escapedPattern = pattern
+              .split('.')
+              .map(part => escapeRegExp(part))
+              .join('\\s*\\.\\s*'); // Permitir espacios alrededor del punto
+
+            const regex = new RegExp(escapedPattern);
+            const matches = regex.test(multilineText);
+
+            if (matches) {
+              log(`✅ Pattern matched: ${pattern} -> ${escapedPattern}`);
+            }
+
+            return matches;
+          });
+        }
+
+        if (!isContainerCall) {
+          log("❌ Not a container call");
           return null;
         }
+
+        log("✅ Container call detected!");
 
         // Extraer el nombre del módulo del string
         const word = document.getText(wordRange);
         const moduleName = word.replace(/['"`]/g, "");
+        log(`📦 Module name extracted: ${moduleName}`);
 
         // Buscar la definición del módulo
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
+          log("❌ No workspace folders found");
           return null;
         }
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
+        log(`📁 Workspace root: ${workspaceRoot}`);
 
         // Buscar en los archivos de DI usando patrones configurables
+        log(`🔎 Searching for module definition...`);
         const modules = findModuleDefinition(workspaceRoot, moduleName, config);
 
         if (modules.length > 0) {
+          log(`✅ Found ${modules.length} module(s)!`);
           // Si encontramos múltiples definiciones, mostrar todas
           return modules.map((module) => {
+            log(`  - ${module.filePath}`);
             return new vscode.Location(
               vscode.Uri.file(module.filePath),
               new vscode.Position(0, 0)
@@ -162,6 +208,7 @@ export const activate = (context: vscode.ExtensionContext) => {
           });
         }
 
+        log(`❌ No modules found for: ${moduleName}`);
         return null;
       },
     }
@@ -554,6 +601,7 @@ const findReferencesToContainerResolve = (
 
           // Crear patrones de búsqueda para cada patrón de llamada configurado
           for (const callPattern of config.containerCallPatterns) {
+            // Buscar en líneas individuales (caso de una sola línea)
             // Escapar puntos en el patrón
             const escapedPattern = callPattern.replace(/\./g, "\\.");
             const pattern = new RegExp(
@@ -580,6 +628,54 @@ const findReferencesToContainerResolve = (
               // Reset regex
               pattern.lastIndex = 0;
             });
+
+            // Buscar en modo multilínea para casos como:
+            // container
+            //   .resolve('moduleName')
+            const multilinePattern = new RegExp(
+              `${escapedPattern}\\s*\\(\\s*['"\`]${escapeRegExp(
+                containerName
+              )}['"\`]\\s*\\)`,
+              "gms" // m = multiline, s = dotall (. coincide con saltos de línea)
+            );
+
+            let multilineMatch;
+            while ((multilineMatch = multilinePattern.exec(content)) !== null) {
+              const matchStart = multilineMatch.index;
+              const matchEnd = matchStart + multilineMatch[0].length;
+
+              // Calcular línea y columna de inicio
+              const beforeMatch = content.substring(0, matchStart);
+              const linesBefore = beforeMatch.split("\n");
+              const startLineIndex = linesBefore.length - 1;
+              const startColumn = linesBefore[linesBefore.length - 1].length;
+
+              // Calcular línea y columna de fin
+              const beforeEnd = content.substring(0, matchEnd);
+              const linesBeforeEnd = beforeEnd.split("\n");
+              const endLineIndex = linesBeforeEnd.length - 1;
+              const endColumn = linesBeforeEnd[linesBeforeEnd.length - 1].length;
+
+              // Verificar si ya hemos agregado esta ubicación (evitar duplicados)
+              const isDuplicate = locations.some(
+                (loc) =>
+                  loc.uri.fsPath === fullPath &&
+                  loc.range.start.line === startLineIndex &&
+                  loc.range.start.character === startColumn
+              );
+
+              if (!isDuplicate) {
+                locations.push(
+                  new vscode.Location(
+                    vscode.Uri.file(fullPath),
+                    new vscode.Range(
+                      new vscode.Position(startLineIndex, startColumn),
+                      new vscode.Position(endLineIndex, endColumn)
+                    )
+                  )
+                );
+              }
+            }
           }
         } catch (error) {
           // Ignorar errores de lectura de archivos
