@@ -111,7 +111,7 @@
     "package": "webpack --mode production --devtool hidden-source-map",
     "prebuild": "node -e \"const pkg=require('./package.json'); const fs=require('fs'); const dir='build/'+pkg.version; fs.mkdirSync(dir, {recursive:true}); console.log('Created directory: '+dir);\"",
     "vsce:package": "npm run prebuild && vsce package --out build/$npm_package_version/awilix-container-navigator.vsix",
-    "publish": "npm run vsce:package && vsce publish && npx ovsx publish -p $OVSX_TOKEN"
+    "publish": "npm run vsce:package && vsce publish && source .env && npx ovsx publish -p $OVSX_TOKEN"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
