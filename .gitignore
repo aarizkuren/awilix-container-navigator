@@ -1,3 +1,4 @@
 node_modules/
 out/
-awilix-container-navigator-*.vsix
+build/
+.env
