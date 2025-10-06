@@ -3,12 +3,12 @@
 src/**
 .gitignore
 .yarnrc
-vsc-extension-quickstart.md
+webpack.config.js
 **/tsconfig.json
 **/.eslintrc.json
 **/*.map
 **/*.ts
 node_modules/**
-.editorconfig
-*.sh
+package-lock.json
+install.sh
 reinstall.sh

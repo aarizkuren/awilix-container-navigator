@@ -2,6 +2,18 @@
 
 All notable changes to the "Awilix Container Navigator" extension will be documented in this file.
 
+## [1.0.1] - 2025-10-06
+
+### Fixed
+- **Bundling issue**: Configured webpack to properly bundle all dependencies (glob)
+- Resolved "Cannot find module 'glob'" error when installing extension from marketplace
+- Optimized package size from 311 KB to 42 KB
+
+### Changed
+- Migrated from pure TypeScript compilation to webpack bundling
+- Updated build process to include all dependencies in the bundle
+- Improved `.vscodeignore` file to exclude unnecessary files
+
 ## [1.0.0] - 2025-10-03
 
 ### Initial Release
