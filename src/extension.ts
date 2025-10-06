@@ -618,10 +618,12 @@ const findReferencesToContainerResolve = (
   containerName: string,
   config: ExtensionConfig
 ): vscode.Location[] => {
+  log(`🔎 Finding references to container: ${containerName}`);
   const locations: vscode.Location[] = [];
   const searchDir = path.join(workspaceRoot, config.searchRootPath);
 
   if (!fs.existsSync(searchDir)) {
+    log(`❌ Search directory not found: ${searchDir}`);
     return locations;
   }
 
@@ -660,15 +662,21 @@ const findReferencesToContainerResolve = (
 
           // Crear patrones de búsqueda para cada patrón de llamada configurado
           for (const callPattern of config.containerCallPatterns) {
+            // Crear patrón flexible que permita espacios/saltos de línea entre partes
+            // Ejemplo: "container.resolve" -> "container\s*\.\s*resolve"
+            const flexiblePattern = callPattern
+              .split('.')
+              .map(part => escapeRegExp(part))
+              .join('\\s*\\.\\s*');
+
+            const fullPattern = `${flexiblePattern}\\s*\\(\\s*['"\`]${escapeRegExp(
+              containerName
+            )}['"\`]\\s*\\)`;
+
+            log(`🔍 Searching with pattern: ${fullPattern} in ${path.basename(fullPath)}`);
+
             // Buscar en líneas individuales (caso de una sola línea)
-            // Escapar puntos en el patrón
-            const escapedPattern = callPattern.replace(/\./g, "\\.");
-            const pattern = new RegExp(
-              `${escapedPattern}\\s*\\(\\s*['"\`]${escapeRegExp(
-                containerName
-              )}['"\`]\\s*\\)`,
-              "g"
-            );
+            const pattern = new RegExp(fullPattern, "g");
 
             lines.forEach((line, lineIndex) => {
               let match;
@@ -692,9 +700,7 @@ const findReferencesToContainerResolve = (
             // container
             //   .resolve('moduleName')
             const multilinePattern = new RegExp(
-              `${escapedPattern}\\s*\\(\\s*['"\`]${escapeRegExp(
-                containerName
-              )}['"\`]\\s*\\)`,
+              fullPattern,
               "gms" // m = multiline, s = dotall (. coincide con saltos de línea)
             );
 
@@ -724,6 +730,7 @@ const findReferencesToContainerResolve = (
               );
 
               if (!isDuplicate) {
+                log(`📍 Found reference at ${fullPath}:${startLineIndex + 1}:${startColumn}`);
                 locations.push(
                   new vscode.Location(
                     vscode.Uri.file(fullPath),
@@ -745,6 +752,7 @@ const findReferencesToContainerResolve = (
 
   searchInDirectory(searchDir);
 
+  log(`✅ Found ${locations.length} reference(s) to ${containerName}`);
   return locations;
 };
 
