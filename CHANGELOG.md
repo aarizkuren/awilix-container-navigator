@@ -2,6 +2,10 @@
 
 All notable changes to the "Awilix Container Navigator" extension will be documented in this file.
 
+## [1.0.3] - 2025-10-06
+- improved searching references
+- improved searching uses
+
 ## [1.0.2] - 2025-10-06
 
 ### Changed

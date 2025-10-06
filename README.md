@@ -2,7 +2,7 @@
 
 Navigate seamlessly between Awilix container registrations and their implementations in VS Code and Cursor.
 
-[![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://marketplace.visualstudio.com/items?itemName=aarizkuren.awilix-container-navigator)
+[![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)](https://marketplace.visualstudio.com/items?itemName=aarizkuren.awilix-container-navigator)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## ✨ Features
