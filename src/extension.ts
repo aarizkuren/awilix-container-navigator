@@ -19,6 +19,8 @@ const log = (message: string) => {
 interface ContainerModule {
   name: string;
   filePath: string;
+  line?: number;
+  column?: number;
 }
 
 interface RegistrationPattern {
@@ -200,10 +202,10 @@ export const activate = (context: vscode.ExtensionContext) => {
           log(`✅ Found ${modules.length} module(s)!`);
           // Si encontramos múltiples definiciones, mostrar todas
           return modules.map((module) => {
-            log(`  - ${module.filePath}`);
+            log(`  - ${module.filePath}:${module.line || 0}:${module.column || 0}`);
             return new vscode.Location(
               vscode.Uri.file(module.filePath),
-              new vscode.Position(0, 0)
+              new vscode.Position(module.line || 0, module.column || 0)
             );
           });
         }
@@ -371,9 +373,15 @@ const findModuleDefinition = (
 
             if (importedFilePath && fs.existsSync(importedFilePath)) {
               log(`✅ Resolved to: ${importedFilePath}`);
+
+              // Buscar la línea de exportación en el archivo
+              const exportLocation = findExportLineInFile(importedFilePath, reference);
+
               results.push({
                 name: moduleName,
                 filePath: importedFilePath,
+                line: exportLocation?.line,
+                column: exportLocation?.column,
               });
               break; // Salir después de encontrar el primero
             } else {
@@ -392,6 +400,57 @@ const findModuleDefinition = (
 
 const escapeRegExp = (string: string): string => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
+const findExportLineInFile = (
+  filePath: string,
+  reference: string
+): { line: number; column: number } | null => {
+  try {
+    if (!fs.existsSync(filePath)) {
+      return null;
+    }
+
+    const content = fs.readFileSync(filePath, "utf-8");
+    const lines = content.split("\n");
+
+    // Patrones de exportación a buscar
+    const exportPatterns = [
+      // export const functionName
+      new RegExp(`^\\s*export\\s+const\\s+${escapeRegExp(reference)}\\s*[=:]`, ""),
+      // export function functionName
+      new RegExp(`^\\s*export\\s+function\\s+${escapeRegExp(reference)}\\s*[\\(]`, ""),
+      // export class ClassName
+      new RegExp(`^\\s*export\\s+class\\s+${escapeRegExp(reference)}\\s*[{]`, ""),
+      // export default functionName
+      new RegExp(`^\\s*export\\s+default\\s+${escapeRegExp(reference)}\\s*[;]?`, ""),
+      // const functionName = ... seguido de export
+      new RegExp(`^\\s*const\\s+${escapeRegExp(reference)}\\s*[=:]`, ""),
+      // function functionName
+      new RegExp(`^\\s*function\\s+${escapeRegExp(reference)}\\s*[\\(]`, ""),
+      // class ClassName
+      new RegExp(`^\\s*class\\s+${escapeRegExp(reference)}\\s*[{]`, ""),
+      // export { functionName }
+      new RegExp(`^\\s*export\\s*\\{[^}]*\\b${escapeRegExp(reference)}\\b[^}]*\\}`, ""),
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      for (const pattern of exportPatterns) {
+        if (pattern.test(line)) {
+          const column = line.indexOf(reference);
+          log(`📍 Found export at line ${i + 1}, column ${column}: ${line.trim()}`);
+          return { line: i, column: Math.max(0, column) };
+        }
+      }
+    }
+
+    log(`⚠️ Export not found for ${reference} in ${filePath}, using line 0`);
+  } catch (error) {
+    log(`❌ Error reading file for export search: ${error}`);
+  }
+
+  return null;
 };
 
 const findImportedFile = (
